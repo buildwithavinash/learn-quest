@@ -1,3 +1,5 @@
+import Features from "../components/Features";
+
 const LandingPage = () => {
   return (
     <div className="min-h-screen bg-slate-900 text-white">
@@ -13,6 +15,10 @@ const LandingPage = () => {
 
         <button className="bg-indigo-600 hover:bg-indigo-700 px-8 py-4 rounded-lg text-lg font-semibold transition cursor-pointer">Generate Your Learning Path</button>
       </section>
+
+      {/* features */}
+
+      <Features />
 
     </div>
   );
