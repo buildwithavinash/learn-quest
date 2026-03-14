@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { useLocation } from "react-router-dom"
+import TopicItem from "../components/TopicItem";
 
 
 const RoadMapPage = () => {
+
+    const [completedTopics, setCompletedTopics] = useState({});
 
     const location = useLocation();
     const roadmap = location.state?.roadmap;
@@ -12,6 +16,12 @@ const RoadMapPage = () => {
                 No Roadmap found.
             </div>
         )
+    }
+
+    const toggleTopic = (key) => {
+        setCompletedTopics((prev) => ({
+            ...prev, [key]: !prev[key]
+        }))
     }
 
   return (
@@ -28,11 +38,15 @@ const RoadMapPage = () => {
                     <h2 className="text-xl font-semibold mb-4">Week {week.week}</h2>
 
                     <ul className="space-y-2">
-                        {week.topics.map((topic, index)=>(
-                            
-                            <li key={index} className="bg-slate-800 p-3 rounded-md">{topic}</li>
+                        {week.topics.map((topic, index)=>{
 
-                        ))}
+                            const key = `week${week.week}topic${index}`
+
+                            return (
+                                <TopicItem key={key} topic={topic} completed={completedTopics[key]} onToggle={() => toggleTopic(key)} />
+                            )
+                        }
+                        )}
                     </ul>
                 </div>
             ))}
