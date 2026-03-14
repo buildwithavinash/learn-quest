@@ -1,30 +1,74 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom"
+import { useParams } from "react-router-dom"
 import TopicItem from "../components/TopicItem";
 
 
 const RoadMapPage = () => {
 
-    const [completedTopics, setCompletedTopics] = useState({});
+    const { id } = useParams();
+    const [completedTopics, setCompletedTopics] = useState(() => {
 
-    const savedRoadmap = localStorage.getItem("learnquest-roadmap")
+  const saved = localStorage.getItem("learnquest-progress")
 
-    const location = useLocation();
-    const roadmap = savedRoadmap ? JSON.parse(savedRoadmap) : location.state?.roadmap;
+  if (!saved) return {}
+
+  const progress = JSON.parse(saved)
+
+  return progress[id] || {}
+
+});
+
+  
+   
+    const saved = localStorage.getItem("learnquest-roadmaps");
+    let roadmap = null;
+
+    if(saved){
+        const roadmaps = JSON.parse(saved);
+
+        roadmap= roadmaps.find((r)=> r.id.toString() === id)
+    }
 
     if(!roadmap){
         return (
             <div className="text-white p-10">
-                No Roadmap found.
+                Roadmap not found
             </div>
         )
     }
 
     const toggleTopic = (key) => {
-        setCompletedTopics((prev) => ({
-            ...prev, [key]: !prev[key]
-        }))
-    }
+        const updated = {
+    ...completedTopics,
+    [key]: !completedTopics[key]
+  }
+
+  setCompletedTopics(updated)
+
+  const saved = localStorage.getItem("learnquest-progress")
+  const progress = saved ? JSON.parse(saved) : {}
+
+  progress[id] = updated
+
+  localStorage.setItem(
+    "learnquest-progress",
+    JSON.stringify(progress)
+  )
+
+    } 
+    
+    const totalTopics = roadmap.weeks.reduce(
+  (acc, week) => acc + week.topics.length,
+  0
+)
+
+const completedCount = Object.values(completedTopics)
+  .filter(Boolean)
+  .length
+
+const progressPercent = Math.round(
+  (completedCount / totalTopics) * 100
+)
 
   return (
     <div className="min-h-screen bg-slate-950 text-white px-6 py-10">
@@ -32,6 +76,14 @@ const RoadMapPage = () => {
         <h1 className="text-3xl font-bold mb-10">
             Your Learning Roadmap
         </h1>
+
+        <div className="mb-8">
+            <p className="text-sm text-gray-400 mb-2">Progress: {progressPercent}%</p>
+            <div className="w-full bg-slate-800 h-3 rounded">
+                <div style={{width: `${progressPercent}%`}} className="bg-indigo-500 h-3 rounded transition-all"/>
+            </div>
+
+        </div>
 
         <div className="space-y-8">
 

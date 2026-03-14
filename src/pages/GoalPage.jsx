@@ -23,9 +23,22 @@ const GoalPage = () => {
 
     const roadmap = JSON.parse(cleaned)
 
-    localStorage.setItem("learnquest-roadmap", JSON.stringify(roadmap))
+    const saved = localStorage.getItem("learnquest-roadmaps");
+
+    const roadmaps = saved ? JSON.parse(saved) : []
+
+    const newRoadmap = {
+      id: Date.now(),
+      goal, 
+      weeks : roadmap.weeks,
+      createdAt : new Date().toISOString()
+    }
+
+    roadmaps.push(newRoadmap)
+    localStorage.setItem("learnquest-roadmaps", JSON.stringify(roadmaps))
+
+    navigate("/roadmaps")
     
-    navigate('/roadmap', {state: {roadmap}})
     }catch(error){
         console.error(error)
     }
