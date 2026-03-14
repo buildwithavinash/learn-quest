@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { generateRoadmap } from "../services/geminiService";
+import { useNavigate } from "react-router-dom";
 
 const GoalPage = () => {
 
@@ -6,19 +8,27 @@ const GoalPage = () => {
   const [level, setLevel] = useState("beginner");
   const [hours, setHours] = useState(1);
   const [style, setStyle] = useState("projects");
+  const [loading, setLoading] = useState(false)
 
+  const navigate = useNavigate();
 
-  function handleSubmit(e){
+  async function handleSubmit(e){
     e.preventDefault();
 
-    const userInput = {
-        goal,
-        level,
-        hours,
-        style
-    }
+    setLoading(true);
 
-    console.log(userInput);
+    try{
+        const response = await generateRoadmap(goal, level, hours, style);
+    const cleaned = response.replace(/```json/g, "").replace(/```/g, "").trim();
+
+    const roadmap = JSON.parse(cleaned)
+
+    navigate('/roadmap', {state: {roadmap}})
+    }catch(error){
+        console.error(error)
+    }
+    
+    setLoading(false)
   };
 
 
@@ -81,7 +91,9 @@ const GoalPage = () => {
         </div>
 
         {/* submit */}
-        <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 py-3 rounded-lg font-semibold transition cursor-pointer">Generate Roadmap</button>
+        <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 py-3 rounded-lg font-semibold transition cursor-pointer">
+            {loading ? "Generating Roadmap..." : "Generate Roadmap"}
+            </button>
       </form>
     </div>
   );
