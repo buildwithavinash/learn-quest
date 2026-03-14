@@ -73,7 +73,7 @@ const GoalPage = () => {
           <label className="block mb-2 text-sm text-gray-400">Current Skill level</label>
 
           <select value={level} onChange={(e)=>setLevel(e.target.value)} className="w-full p-3 rounded-lg bg-slate-800 border border-slate-700">
-            <option value="begineer">Begineer</option>
+            <option value="beginner">Beginner</option>
             <option value="intermediate">Intermediate</option>
             <option value="advanced">Advanced</option>
           </select>
