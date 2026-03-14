@@ -1,7 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import Features from "../components/Features";
+import { useEffect, useState } from "react";
 
 const LandingPage = () => {
+
+  const [hasRoadmap, setHasRoadmap] = useState(false);
+
+  useEffect(()=>{
+    const saved = localStorage.getItem("learnquest-roadmap");
+    if(saved){
+      setHasRoadmap(true)
+    };
+  }, [])
+
+
   const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-slate-900 text-white">
@@ -15,7 +27,9 @@ const LandingPage = () => {
           goals into achievements.
         </p>
 
-        <button onClick={()=> navigate('/generate')} className="bg-indigo-600 hover:bg-indigo-700 px-8 py-4 rounded-lg text-lg font-semibold transition cursor-pointer">Generate Your Learning Path</button>
+        <button onClick={()=> navigate(hasRoadmap ? "/roadmap" : "/generate")} className="bg-indigo-600 hover:bg-indigo-700 px-8 py-4 rounded-lg text-lg font-semibold transition cursor-pointer">
+          {hasRoadmap ? "Continue Learing" : "Generate Your Learning Path"}
+        </button>
       </section>
 
       {/* features */}

@@ -23,6 +23,8 @@ const GoalPage = () => {
 
     const roadmap = JSON.parse(cleaned)
 
+    localStorage.setItem("learnquest-roadmap", JSON.stringify(roadmap))
+    
     navigate('/roadmap', {state: {roadmap}})
     }catch(error){
         console.error(error)

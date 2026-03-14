@@ -7,8 +7,10 @@ const RoadMapPage = () => {
 
     const [completedTopics, setCompletedTopics] = useState({});
 
+    const savedRoadmap = localStorage.getItem("learnquest-roadmap")
+
     const location = useLocation();
-    const roadmap = location.state?.roadmap;
+    const roadmap = savedRoadmap ? JSON.parse(savedRoadmap) : location.state?.roadmap;
 
     if(!roadmap){
         return (
