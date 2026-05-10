@@ -1,35 +1,12 @@
 const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
-function extractJson(text) {
-  const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
-  const start = cleaned.indexOf("{");
-  const end = cleaned.lastIndexOf("}");
-
-  if (start === -1 || end === -1) {
-    throw new Error("The AI response did not include a JSON roadmap.");
-  }
-
-  return cleaned.slice(start, end + 1);
-}
-
-function normalizeRoadmap(roadmap) {
-  if (!roadmap || !Array.isArray(roadmap.weeks)) {
-    throw new Error("The AI response did not include roadmap weeks.");
-  }
-
-  return {
-    weeks: roadmap.weeks.map((week, index) => ({
-      week: Number(week.week) || index + 1,
-      topics: Array.isArray(week.topics)
-        ? week.topics.filter((topic) => typeof topic === "string" && topic.trim())
-        : [],
-    })),
-  };
+function cleanJsonText(text) {
+  return text.replace(/```json/g, "").replace(/```/g, "").trim();
 }
 
 export async function generateRoadmap(goal, level, hours, style) {
   if (!API_KEY) {
-    throw new Error("Missing VITE_GROQ_API_KEY in your .env file.");
+    throw new Error("Missing VITE_GROQ_API_KEY. Add it in Vercel Environment Variables and redeploy.");
   }
 
   const prompt = `
@@ -43,7 +20,6 @@ Daily study hours: ${hours}
 Preferred learning style: ${style}
 
 Instructions:
-
 1. Estimate the total time needed to learn this skill from the given level.
 2. Calculate how many weeks it will take based on the user's daily study hours.
 3. Divide the roadmap into weekly sections.
@@ -67,44 +43,35 @@ Return ONLY valid JSON in this format:
 Do not include explanations outside the JSON.
 `;
 
-  try {
-    const response = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${API_KEY}`,
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
         },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          temperature: 0.7,
-          max_tokens: 2048,
-        }),
-      }
-    );
+      ],
+      temperature: 0.7,
+      max_tokens: 2048,
+    }),
+  });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || "Failed to fetch roadmap.");
-    }
-
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content;
-
-    if (!text) {
-      throw new Error("The AI response was empty.");
-    }
-
-    return normalizeRoadmap(JSON.parse(extractJson(text)));
-  } catch (error) {
-    console.error("Roadmap generation error:", error);
-    throw error;
+  if (!response.ok) {
+    throw new Error("Failed to fetch roadmap.");
   }
+
+  const data = await response.json();
+  const text = data.choices?.[0]?.message?.content;
+
+  if (!text) {
+    throw new Error("No roadmap was returned.");
+  }
+
+  return JSON.parse(cleanJsonText(text));
 }

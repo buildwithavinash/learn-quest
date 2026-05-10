@@ -40,10 +40,11 @@ const RoadMapsPage = () => {
             : 0;
 
           return (
-            <div
+            <button
+              type="button"
               key={roadmap.id}
               onClick={() => navigate(`/roadmap/${roadmap.id}`)}
-              className="bg-slate-900 border border-slate-800 p-6 rounded-xl cursor-pointer hover:border-indigo-500"
+              className="bg-slate-900 border border-slate-800 p-6 rounded-xl cursor-pointer text-left hover:border-indigo-500"
             >
               <h2 className="text-xl font-semibold mb-2">{roadmap.goal}</h2>
               <p className="text-gray-400 text-sm mb-3">Progress: {percent}%</p>
@@ -55,7 +56,7 @@ const RoadMapsPage = () => {
                 />
               </div>
               <p className="mt-4">Click to continue learning</p>
-            </div>
+            </button>
           );
         })}
       </div>

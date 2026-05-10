@@ -13,7 +13,19 @@ function readJson(key, fallback) {
 
 export function getRoadmaps() {
   const roadmaps = readJson(ROADMAPS_KEY, []);
-  return Array.isArray(roadmaps) ? roadmaps : [];
+
+  if (!Array.isArray(roadmaps)) {
+    return [];
+  }
+
+  return roadmaps.filter((roadmap) => {
+    return (
+      roadmap &&
+      roadmap.id !== undefined &&
+      typeof roadmap.goal === "string" &&
+      Array.isArray(roadmap.weeks)
+    );
+  });
 }
 
 export function saveRoadmaps(roadmaps) {
