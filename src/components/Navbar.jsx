@@ -9,16 +9,30 @@ const Navbar = () => {
 
   // prevent background scrolling when mobile menu is open
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+
     if (menuOpen) {
       document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "auto";
+      document.body.style.overflow = previousOverflow;
     }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
   }, [menuOpen]);
 
   const handleNavigate = (path) => {
     navigate(path);
     setMenuOpen(false);
+  };
+
+  const handleFeaturesClick = () => {
+    setMenuOpen(false);
+    navigate("/");
+    setTimeout(() => {
+      document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
+    }, 0);
   };
 
   return (
@@ -45,12 +59,12 @@ const Navbar = () => {
             Home
           </button>
 
-          <a
-            href="#features"
+          <button
+            onClick={handleFeaturesClick}
             className="hover:text-indigo-400 transition"
           >
             Features
-          </a>
+          </button>
 
           <button
             onClick={() => navigate("/roadmaps")}
@@ -112,13 +126,12 @@ const Navbar = () => {
               Home
             </button>
 
-            <a
-              href="#features"
-              onClick={() => setMenuOpen(false)}
+            <button
+              onClick={handleFeaturesClick}
               className="text-lg hover:text-indigo-400 cursor-pointer"
             >
               Features
-            </a>
+            </button>
 
             <button
               onClick={() => handleNavigate("/roadmaps")}

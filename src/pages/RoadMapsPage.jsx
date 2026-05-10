@@ -1,19 +1,27 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getProgress, getRoadmaps } from "../services/storageService";
 
 const RoadMapsPage = () => {
   const navigate = useNavigate();
-  const [roadmaps] = useState(() => {
-    const saved = localStorage.getItem("learnquest-roadmaps");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [roadmaps] = useState(getRoadmaps);
+  const progress = getProgress();
 
-  const savedProgress = localStorage.getItem("learnquest-progress");
-
-  const progress = savedProgress ? JSON.parse(savedProgress) : {};
   return (
     <div className="min-h-screen bg-slate-950 text-white p-6">
-      <h1 className="text-3xl font-bold mb-8">Your learning Paths</h1>
+      <h1 className="text-3xl font-bold mb-8">Your Learning Paths</h1>
+
+      {roadmaps.length === 0 && (
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
+          <p className="text-gray-300">No roadmaps yet.</p>
+          <button
+            onClick={() => navigate("/generate")}
+            className="mt-4 rounded-lg bg-indigo-600 px-5 py-3 font-semibold transition hover:bg-indigo-700"
+          >
+            Generate a Roadmap
+          </button>
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         {roadmaps.map((roadmap) => {
@@ -24,7 +32,7 @@ const RoadMapsPage = () => {
 
           const totalTopics = roadmap.weeks.reduce(
             (acc, week) => acc + week.topics.length,
-            0,
+            0
           );
 
           const percent = totalTopics

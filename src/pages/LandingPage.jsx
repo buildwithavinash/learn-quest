@@ -1,14 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import Features from "../components/Features";
 import { useState } from "react";
+import { getRoadmaps } from "../services/storageService";
 
 const LandingPage = () => {
 
   const navigate = useNavigate();
 
   const [hasRoadmap] = useState(() => {
-    const saved = localStorage.getItem("learnquest-roadmaps");
-    return !!saved;
+    return getRoadmaps().length > 0;
   });
 
   return (

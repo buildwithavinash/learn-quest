@@ -1,6 +1,37 @@
-const API_KEY = import.meta.env.VITE_GEMINI_KEY;
+const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+
+function extractJson(text) {
+  const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+
+  if (start === -1 || end === -1) {
+    throw new Error("The AI response did not include a JSON roadmap.");
+  }
+
+  return cleaned.slice(start, end + 1);
+}
+
+function normalizeRoadmap(roadmap) {
+  if (!roadmap || !Array.isArray(roadmap.weeks)) {
+    throw new Error("The AI response did not include roadmap weeks.");
+  }
+
+  return {
+    weeks: roadmap.weeks.map((week, index) => ({
+      week: Number(week.week) || index + 1,
+      topics: Array.isArray(week.topics)
+        ? week.topics.filter((topic) => typeof topic === "string" && topic.trim())
+        : [],
+    })),
+  };
+}
 
 export async function generateRoadmap(goal, level, hours, style) {
+  if (!API_KEY) {
+    throw new Error("Missing VITE_GROQ_API_KEY in your .env file.");
+  }
+
   const prompt = `
 You are an expert learning planner.
 
@@ -16,46 +47,64 @@ Instructions:
 1. Estimate the total time needed to learn this skill from the given level.
 2. Calculate how many weeks it will take based on the user's daily study hours.
 3. Divide the roadmap into weekly sections.
-4. Each week should contain 4–6 practical topics or tasks.
+4. Each week should contain 4-6 practical topics or tasks.
 5. Include projects where appropriate.
 
 Return ONLY valid JSON in this format:
 
 {
- "weeks":[
-  {
-   "week":1,
-   "topics":[
-    "topic 1",
-    "topic 2"
-   ]
-  }
- ]
+  "weeks": [
+    {
+      "week": 1,
+      "topics": [
+        "topic 1",
+        "topic 2"
+      ]
+    }
+  ]
 }
 
 Do not include explanations outside the JSON.
 `;
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: prompt }],
-          },
-        ],
-      }),
-    },
-  );
+  try {
+    const response = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          temperature: 0.7,
+          max_tokens: 2048,
+        }),
+      }
+    );
 
-  const data = await response.json();
-  console.log(data)
-  const text = data.candidates[0].content.parts[0].text;
-  return text;
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Failed to fetch roadmap.");
+    }
+
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content;
+
+    if (!text) {
+      throw new Error("The AI response was empty.");
+    }
+
+    return normalizeRoadmap(JSON.parse(extractJson(text)));
+  } catch (error) {
+    console.error("Roadmap generation error:", error);
+    throw error;
+  }
 }
